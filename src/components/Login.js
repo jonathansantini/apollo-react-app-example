@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { useMutation } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { SET_LOGIN } from '../utils/queries';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const [userLogin, { data, error }] = useMutation(SET_LOGIN);
+  const [userLogin, { data, error }] = useLazyQuery(SET_LOGIN);
 
-  if (error) {
-    alert('Error Logging In User');
-  }
+  const hasError = data ? data.userLogin.status === 'Error' : false;
 
-  if (data) {
-    alert('Successfully Logged In');
+  if (data && !hasError) {
+    const token = data.userLogin.token;
+    localStorage.setItem('token', token);
+    return (
+      <div>
+        <h2>You're logged in!</h2>
+        <div className="token">{token}</div>
+      </div>
+    )
   }
 
   return (
@@ -25,6 +30,7 @@ export default function Login() {
       }}
     >
       <p>Sign In</p>
+      {hasError && <p>Error :( Please try again</p>}
       <input
         title="Username"
         id="username"
